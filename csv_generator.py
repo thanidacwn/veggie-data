@@ -14,18 +14,18 @@ print("\nThe categories format using lists on the restaurants section of this we
 category = input("The categories to query, ex: ,kebab,sushi,bbq (Follow this format to input multiple categories): ")
 limit = input("How many restaurants would you like to query? (Maximum: 50): ") or '50'
 file_directory = input("Which file should .csv should be written to? (ex: test_data.csv): ") or 'test_data.csv'
-write_mode = input("Select write mode to write or append (ex: w)(ex: a)") or 'w'
+write_mode = input("Select write mode to write or append (ex: w)(ex: a): ") or 'w'
 
 with YelpAPI(config("API_KEY"), timeout_s=5.0) as yelp_api:
     search_results = yelp_api.search_query(location=state, categories="vegan,vegetarian" + category,
                                            term="restaurants", sort_by="best_match", limit=limit, radius=40000)
+    if not search_results['businesses']:
+        raise ValueError("The searched parameter return nothing")
     json_results = json.dumps(search_results, indent=4)
     df = pd.json_normalize(search_results["businesses"])  # make json to DataFrame
     df = df.drop(['id', 'alias', 'is_closed', 'review_count', 'rating', 'transactions', 'phone', 'display_phone',
-                  'distance', 'coordinates.latitude', 'coordinates.longitude', 'location.address1',
-                  'location.address2',
-                  'location.address3', 'location.zip_code', 'location.country'],
-                 axis=1)  # drop all unnecessary columns
+                  'distance', 'coordinates.latitude', 'coordinates.longitude', 'location.address1', 'location.address2',
+                  'location.address3', 'location.zip_code', 'location.country'], axis=1)  # drop all unnecessary columns
     df = df.replace(r'^\s*$', None, regex=True)  # fill the blank cell with NaN
     df['menu_link'] = "Check The Website for a Menu"  # add non-existed column to match current .csv template
     # change the name of element to match the template
